@@ -1,0 +1,178 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Я люблю стаканчики</title>
+  <style>
+    body {
+      margin: 0;
+      background: linear-gradient(to top right, #ffe29f, #ffa99f, #ffdde1);
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+    }
+    #text {
+      position: absolute;
+      width: 100%;
+      text-align: center;
+      bottom: 40px;
+      font-size: 50px;
+      font-weight: bold;
+      color: #ff0066;
+      text-shadow: 0 0 15px #ff6699, 0 0 25px #ff99aa;
+      font-family: 'Arial', sans-serif;
+      animation: pulse 2s infinite;
+    }
+
+    .floating-text {
+      position: absolute;
+      color: #ff3399;
+      font-size: 28px;
+      font-weight: bold;
+      font-family: 'Arial', sans-serif;
+      text-shadow: 0 0 10px #ff99cc;
+      opacity: 1;
+      pointer-events: none;
+      animation: floatUp 2s forwards;
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-100px);
+        opacity: 0;
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.1);
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="heartCanvas"></canvas>
+  <div id="text">Я люблю стаканчики!</div>
+
+  <script>
+    const canvas = document.getElementById("heartCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles = [];
+    const bursts = [];
+    const emoji = "🥤";
+
+    class Particle {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.size = Math.random() * 20 + 20;
+        this.speedX = (Math.random() - 0.5) * 2;
+        this.speedY = (Math.random() - 0.5) * 2;
+        this.opacity = 1;
+      }
+
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+      }
+
+      draw() {
+        ctx.font = `${this.size}px Arial`;
+        ctx.globalAlpha = this.opacity;
+        ctx.fillText(emoji, this.x, this.y);
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    class BurstParticle {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.size = Math.random() * 3 + 1;
+        this.color = `hsl(${Math.random() * 360}, 100%, 70%)`;
+        this.speedX = (Math.random() - 0.5) * 6;
+        this.speedY = (Math.random() - 0.5) * 6;
+        this.life = 60;
+      }
+
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.life -= 1;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.fillStyle = this.color;
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function init() {
+      particles.length = 0;
+      for (let i = 0; i < 100; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        particles.push(new Particle(x, y));
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+
+      bursts.forEach((b, i) => {
+        b.update();
+        b.draw();
+        if (b.life <= 0) bursts.splice(i, 1);
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    canvas.addEventListener("click", (e) => {
+      for (let i = 0; i < 40; i++) {
+        bursts.push(new BurstParticle(e.clientX, e.clientY));
+      }
+      showFloatingText(e.clientX, e.clientY);
+    });
+
+    function showFloatingText(x, y) {
+      const floating = document.createElement("div");
+      floating.className = "floating-text";
+      floating.innerText = "Стаканчики навсегда! 🥤";
+      floating.style.left = x + "px";
+      floating.style.top = y + "px";
+      document.body.appendChild(floating);
+      setTimeout(() => {
+        document.body.removeChild(floating);
+      }, 2000);
+    }
+
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      init();
+    });
+
+    init();
+    animate();
+  </script>
+</body>
+</html>
